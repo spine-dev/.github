@@ -28,12 +28,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: version-artifact
-          path: version.txt
+          path: ${{ env.WorkingDirectory }}
 
       - name: Read Version from File and Determine Tag
         id: version
         run: |
-          VERSION=$(cat version.txt)
+          VERSION=$(cat ${{ env.WorkingDirectory }}/version.txt)
           if [[ "$VERSION" == *"-beta"* ]]; then
             DOCKER_TAG="beta"
           elif [[ "$VERSION" == *"-rc"* ]]; then

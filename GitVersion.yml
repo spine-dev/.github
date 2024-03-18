@@ -3,6 +3,7 @@ branches:
   main:
     regex: master|main
     tag: ''
+    source-branches: ['main', 'release', 'master']
   dev:
     regex: dev
     tag: beta
@@ -10,6 +11,7 @@ branches:
     is-release-branch: false
     tracks-release-branches: false
     is-mainline: false
+    source-branches: ['main', 'master', 'release', 'feature', 'hotfix']
   release:
     regex: releases?[/-]
     tag: rc
@@ -17,5 +19,6 @@ branches:
     is-release-branch: true
     tracks-release-branches: false
     is-mainline: false
+    source-branches: ['main', 'master', 'dev', 'develop']
 ignore:
   sha: []
