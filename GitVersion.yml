@@ -1,0 +1,21 @@
+mode: ContinuousDeployment
+branches:
+  main:
+    regex: master|main
+    tag: ''
+  dev:
+    regex: dev
+    tag: beta
+    increment: Minor
+    is-release-branch: false
+    tracks-release-branches: false
+    is-mainline: false
+  release:
+    regex: releases?[/-]
+    tag: rc
+    increment: Patch
+    is-release-branch: true
+    tracks-release-branches: false
+    is-mainline: false
+ignore:
+  sha: []

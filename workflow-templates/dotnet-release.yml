@@ -1,0 +1,49 @@
+name: Create GitHub Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - dev
+      - release
+      - "release/*"
+
+env:
+  ArtifactDirectory: 'artifacts/xx'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.13.4
+        with:
+          versionSpec: '5.12'
+      
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0.13.4
+        id: gitversion
+      
+      - name: Save Version to File
+        run: echo ${{ steps.gitversion.outputs.SemVer }} > version.txt
+      
+      - name: Upload Version as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-artifact
+          path: version.txt
+      
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: ${{ steps.gitversion.outputs.SemVer }}
+          name: Release ${{ steps.gitversion.outputs.SemVer }}
+          draft: ${{ github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/release/') }}
+          prerelease: ${{ github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/release/') }}
+          artifacts: ${{ env.ArtifactDirectory }} # Update as needed
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,57 @@
+name: Publish NuGet Package
+
+on:
+  workflow_run:
+    workflows: ["Create GitHub Release"]
+    branches:
+      - master
+      - main
+      - dev
+      - release
+      - "release/*"
+    types:
+      - completed
+
+env:
+  WorkingDirectory: ${{ github.workspace }}/nuget
+  DotnetVersion: '8.0.x' # Update as needed
+  ProjectName: 'Spine.xx' # Update as needed
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Version Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version-artifact
+          path: version.txt
+
+      - name: Read Version from File
+        id: version
+        run: echo "::set-output name=VERSION::$(cat ${{ env.WorkingDirectory }}/version.txt)"
+        shell: bash
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ProjectName }}
+          path: ${{ env.WorkingDirectory }}
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DotnetVersion }}
+
+      - name: Setup NuGet
+        run: dotnet nuget locals all --clear
+
+      - name: Pack and Push NuGet Package
+        run: |
+          dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github ${{ secrets.NUGET_FEED_URL }}
+          dotnet pack --configuration Release --output ./nupkg -p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          dotnet nuget push ./*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"

@@ -1,0 +1,63 @@
+name: Build, Test and Analyze .NET
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+      - dev
+      - release
+      - "release/*"
+
+env:
+  ArtifactDirectory: 'artifacts/xx' # Update as needed
+  DotnetVersion: '8.0.x' # Update as needed
+  ProjectName: 'Spine.xx' # Update as needed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DotnetVersion }}
+          
+      - name: Restore dependencies
+        run: dotnet restore
+        
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ProjectName }}
+          path: ${{ env.ArtifactDirectory }}
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DotnetVersion }}
+          
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+  analyze:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Code Analysis
+        uses: muno92/resharper_inspectcode@v1.11.7
+        with:
+          solutionPath: '${{ env.ProjectName }}.sln'
