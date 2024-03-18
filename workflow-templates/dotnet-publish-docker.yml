@@ -67,8 +67,3 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ env.ProjectName }}:${{ steps.version.outputs.DOCKER_TAG }}
-          build-args: |
-            VERSION=${{ steps.version.outputs.VERSION }}
-            NUGET_FEED_URL=${{ secrets.NUGET_FEED_URL }}
-            NUGET_USERNAME=${{ github.actor }}
-            NUGET_PASSWORD=${{ secrets.NUGET_AUTH }}
